@@ -91,8 +91,6 @@ class Game(object):
         # the code.
         for cell in self.changedCells:
             x, y = cell
-            if (x, y) in nextChangedCells:
-                continue
             leftBound = ((x - 1) + self.size) % self.size
             rightBound = (x + 1) % self.size
             topBound = ((y - 1) + self.size) % self.size

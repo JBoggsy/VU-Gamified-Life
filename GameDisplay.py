@@ -93,7 +93,7 @@ class GameDisplay(tk.Frame):
                 rectTag = "({x},{y})".format(x=x, y=y)
                 gridRow.append(self.gridCanvas.create_rectangle(x0, y0,
                                                                 x1, y1,
-                                                                width=0,
+                                                                width=1,
                                                                 tags=rectTag))
             self.canvasGrid.append(gridRow)
         self.gridCanvas.update_idletasks()
