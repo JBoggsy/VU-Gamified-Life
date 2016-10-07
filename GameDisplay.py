@@ -2,6 +2,7 @@ __author__ = 'jmsbo'
 from math import floor
 
 import tkinter as tk
+from time import sleep
 
 WIDTH = 1080
 HEIGHT = 720
@@ -26,6 +27,7 @@ class GameDisplay(tk.Frame):
         self.grid(sticky=tk.N+tk.E+tk.S+tk.W)
         self.liveCellCount = tk.StringVar()
         self.iterNumVar = tk.StringVar()
+        self.previousCell = ()
         self.__create_widgets()
         self.__paint_grid()
         self._root().mainloop()
@@ -47,6 +49,7 @@ class GameDisplay(tk.Frame):
         # Create the canvas widget and draw a blank grid on it
         self.gridCanvas = tk.Canvas(self, bg="#d7941d", closeenough=0.0)
         self.gridCanvas.grid(row=0, column=0, columnspan=5, sticky=tk.N+tk.E+tk.S+tk.W)
+        self.gridCanvas.bind("<B1-Motion>", self.__handle_drag)
         self.gridCanvas.bind("<ButtonRelease-1>", self.__handle_click)
         self.__create_canvas_grid()
 
@@ -148,6 +151,30 @@ class GameDisplay(tk.Frame):
         self.iterNumLabel.update_idletasks()
 
 
+    def __handle_drag(self, event):
+        """
+        Handles the user's click on the canvas. Basically, if the game hasn't
+        started yet (self.game.get_iter_num() == 0), let the user paint and
+        erase cells. Once the game starts, make sre the user can't change
+        anything.
+
+        :param event: Mouse button 1 held with motion, used for coordinates.
+        :return: None, but changes canvas and game state
+        """
+        if self.game.get_iter_num() > 0:
+            return
+        clickX, clickY = (event.x, event.y)
+        cellID = self.gridCanvas.find_closest(clickX, clickY, halo=0)[0]
+        cellTag = self.gridCanvas.gettags(cellID)[0]
+        cell = [int(pos) for pos in cellTag.strip('()').split(',')]
+        x, y = cell
+        if (x, y) == self.previousCell:
+            return
+        print(x, y, clickX, clickY)
+        self.game.flip_cell_at(x, y)
+        self.__paint_grid()
+        self.previousCell = (x, y)
+
     def __handle_click(self, event):
         """
         Handles the user's click on the canvas. Basically, if the game hasn't
@@ -155,7 +182,7 @@ class GameDisplay(tk.Frame):
         erase cells. Once the game starts, make sre the user can't change
         anything.
 
-        :param event: Mouse button 1 released, used for coordinates.
+        :param event: Mouse button 1 held with motion, used for coordinates.
         :return: None, but changes canvas and game state
         """
         if self.game.get_iter_num() > 0:
@@ -168,7 +195,6 @@ class GameDisplay(tk.Frame):
         print(x, y, clickX, clickY)
         self.game.flip_cell_at(x, y)
         self.__paint_grid()
-
 
     def step_game(self):
         """
@@ -191,6 +217,7 @@ class GameDisplay(tk.Frame):
             if self.game.get_changed_cells() == []:
                 break
             self.game.iterate_game()
+            sleep(0.05)
             self.__paint_grid()
 
     def new_game(self):
